@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 The jma-openapi contributors
+
+SPDX-License-Identifier: MPL-2.0
+-->
+
 # ADR 001: Language and Router Selection
 
 - 日付: 2026-03-12

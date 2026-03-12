@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2026 The jma-openapi contributors
+//
+// SPDX-License-Identifier: MPL-2.0
+
 module github.com/tomy-git/jma-openapi
 
 go 1.26.0

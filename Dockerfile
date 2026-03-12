@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 The jma-openapi contributors
+#
+# SPDX-License-Identifier: MPL-2.0
+
 FROM golang:1.26.1-bookworm AS base
 WORKDIR /workspace
 COPY go.mod go.sum ./
