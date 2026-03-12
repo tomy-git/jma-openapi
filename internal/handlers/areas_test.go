@@ -119,6 +119,32 @@ func TestGetV1Areas_EmptyItemsForNoMatch(t *testing.T) {
 	}
 }
 
+func TestGetV1Areas_EmptyQueryValuesAreIgnored(t *testing.T) {
+	t.Parallel()
+
+	server := newTestServer(t)
+	router := chi.NewRouter()
+	gen.HandlerFromMux(server, router)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/areas?parent=&name=&nameMatchMode=&officeName=&child=", nil)
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", rec.Code)
+	}
+
+	var response gen.AreasResponse
+	if err := json.NewDecoder(rec.Body).Decode(&response); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(response.Items) == 0 {
+		t.Fatal("expected items for empty query values")
+	}
+}
+
 func newTestServer(t *testing.T) *Server {
 	t.Helper()
 

@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/tomy-git/jma-openapi/internal/gen"
 	"github.com/tomy-git/jma-openapi/internal/mappers"
@@ -13,11 +14,11 @@ import (
 
 func (s *Server) GetV1Areas(w http.ResponseWriter, r *http.Request, params gen.GetV1AreasParams) {
 	response, err := s.areaUsecase.List(r.Context(), mappers.AreaFilter{
-		Parent:     params.Parent,
-		Name:       params.Name,
+		Parent:     emptyStringToNil(params.Parent),
+		Name:       emptyStringToNil(params.Name),
 		NameMode:   derefAreaMatchMode(params.NameMatchMode),
-		OfficeName: params.OfficeName,
-		Child:      params.Child,
+		OfficeName: emptyStringToNil(params.OfficeName),
+		Child:      emptyStringToNil(params.Child),
 	})
 	if err != nil {
 		writeHandlerError(w, r, err)
@@ -33,6 +34,19 @@ func derefAreaMatchMode(mode *gen.AreaMatchMode) gen.AreaMatchMode {
 	}
 
 	return *mode
+}
+
+func emptyStringToNil(value *string) *string {
+	if value == nil {
+		return nil
+	}
+
+	trimmed := strings.TrimSpace(*value)
+	if trimmed == "" {
+		return nil
+	}
+
+	return &trimmed
 }
 
 func (s *Server) GetV1AreasAreaCode(w http.ResponseWriter, r *http.Request, areaCode string) {
