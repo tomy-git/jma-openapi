@@ -137,11 +137,35 @@ Endpoints to check:
 
 - `http://localhost:8080/healthz`
 - `http://localhost:8080/v1/areas`
+- `http://localhost:8080/v1/areas?name=東京都&officeName=気象庁&child=130010`
+- `http://localhost:8080/v1/areas?name=東京&nameMatchMode=prefix`
 - `http://localhost:8080/v1/areas/130000`
 - `http://localhost:8080/v1/forecasts/130000`
+- `http://localhost:8080/v1/forecasts/130000/areas/130010`
+- `http://localhost:8080/v1/forecasts/130000/areas`
+- `http://localhost:8080/v1/forecasts/130000/weather-areas`
+- `http://localhost:8080/v1/forecasts/130000/temperature-areas`
+- `http://localhost:8080/v1/forecasts/130000/areas:resolve?q=東京&matchMode=suggested`
+- `http://localhost:8080/v1/forecasts/130000/areas/44132/latest`
+- `http://localhost:8080/v1/forecasts/130000/areas/130010/timeseries`
 - `http://localhost:8080/openapi.yaml`
 - `http://localhost:8080/openapi.json`
 - `http://localhost:8080/docs`
+
+Representative API examples:
+
+```bash
+curl 'http://localhost:8080/v1/areas?name=東京都&officeName=気象庁&child=130010'
+curl 'http://localhost:8080/v1/areas?name=東京&nameMatchMode=prefix'
+curl 'http://localhost:8080/v1/forecasts/130000/areas/130010'
+curl 'http://localhost:8080/v1/forecasts/130000/areas/44132'
+curl 'http://localhost:8080/v1/forecasts/130000/areas'
+curl 'http://localhost:8080/v1/forecasts/130000/weather-areas'
+curl 'http://localhost:8080/v1/forecasts/130000/temperature-areas'
+curl 'http://localhost:8080/v1/forecasts/130000/areas:resolve?q=東京&matchMode=suggested'
+curl 'http://localhost:8080/v1/forecasts/130000/areas/44132/latest'
+curl 'http://localhost:8080/v1/forecasts/130000/areas/130010/timeseries'
+```
 
 ### Environment Variables
 
@@ -160,9 +184,9 @@ Endpoints to check:
 ### Regenerate OpenAPI Bindings
 
 ```bash
-oapi-codegen -config openapi/oapi-codegen-types.yaml openapi/openapi.yaml
-oapi-codegen -config openapi/oapi-codegen-server.yaml openapi/openapi.yaml
-oapi-codegen -config openapi/oapi-codegen-spec.yaml openapi/openapi.yaml
+(cd openapi && oapi-codegen -config oapi-codegen-types.yaml openapi.yaml)
+(cd openapi && oapi-codegen -config oapi-codegen-server.yaml openapi.yaml)
+(cd openapi && oapi-codegen -config oapi-codegen-spec.yaml openapi.yaml)
 ```
 
 ### License Headers

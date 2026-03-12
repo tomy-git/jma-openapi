@@ -27,9 +27,6 @@ go.work.sum
 # ローカルの補助設定
 .mise.local.toml
 
-# ローカル作業メモ
-docs/plans/
-
 # macOS
 .DS_Store
 __MACOSX/

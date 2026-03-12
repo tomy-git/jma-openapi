@@ -54,12 +54,20 @@ func WriteError(w http.ResponseWriter, r *http.Request, err error) {
 		Error: gen.ErrorModel{
 			Code:      appErr.Code,
 			Message:   appErr.Message,
-			RequestID: requestID,
-			Details:   appErr.Details,
+			RequestId: requestID,
+			Details:   errorDetailsPtr(appErr.Details),
 		},
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(appErr.StatusCode)
 	_ = json.NewEncoder(w).Encode(payload)
+}
+
+func errorDetailsPtr(details map[string]any) *map[string]any {
+	if details == nil {
+		return nil
+	}
+
+	return &details
 }
