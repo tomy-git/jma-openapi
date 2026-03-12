@@ -125,6 +125,8 @@ go test ./...
 golangci-lint run
 ```
 
+GitHub Actions では、pull request と `main` への push を契機に `go test ./...`、`golangci-lint`、REUSE によるライセンスチェック、`govulncheck ./...`、`go build ./...` を実行します。
+
 サーバーを起動する。
 
 ```bash

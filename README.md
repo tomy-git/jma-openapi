@@ -125,6 +125,8 @@ go test ./...
 golangci-lint run
 ```
 
+GitHub Actions runs `go test ./...`, `golangci-lint`, REUSE license checks, `govulncheck ./...`, and `go build ./...` on pull requests and pushes to `main`.
+
 Start the server:
 
 ```bash
