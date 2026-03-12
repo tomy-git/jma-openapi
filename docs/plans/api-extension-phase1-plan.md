@@ -21,11 +21,11 @@
 
 ### 1.3 成功条件
 
-- [ ] `GET /v1/areas` で `parent`、`name`、`officeName`、`child` の AND 条件検索ができる。
-- [ ] `GET /v1/areas` の検索結果 0 件時は `200` と空の `items` を返す仕様が OpenAPI と実装で一致している。
-- [ ] `GET /v1/forecasts/{officeCode}/areas/{areaCode}` が `publishingOffice`、`reportDatetime`、`office`、対象 `weatherArea` を返し、temperature 系項目を含めない。
-- [ ] 追加 API の正常系と主要異常系が unit test と HTTP レベルテストで固定されている。
-- [ ] `oapi-codegen` 再生成と `go test ./...` が成功する。
+- [x] `GET /v1/areas` で `parent`、`name`、`officeName`、`child` の AND 条件検索ができる。
+- [x] `GET /v1/areas` の検索結果 0 件時は `200` と空の `items` を返す仕様が OpenAPI と実装で一致している。
+- [x] `GET /v1/forecasts/{officeCode}/areas/{areaCode}` が `publishingOffice`、`reportDatetime`、`office`、対象 `weatherArea` を返し、temperature 系項目を含めない。
+- [x] 追加 API の正常系と主要異常系が unit test と HTTP レベルテストで固定されている。
+- [x] `oapi-codegen` 再生成と `go test ./...` が成功する。
 
 ## 2. 前提と制約
 
@@ -64,9 +64,9 @@
 
 ## 4. タスク分解
 
-### [ ] フェーズ1: OpenAPI 契約の確定
+### [x] フェーズ1: OpenAPI 契約の確定
 
-- [ ] タスク1.1: `areas` 検索条件を OpenAPI に追加する
+- [x] タスク1.1: `areas` 検索条件を OpenAPI に追加する
   - 目的:
     - `GET /v1/areas` の検索仕様を先に固定する。
   - 対象ファイル:
@@ -76,7 +76,7 @@
     - `name`、`officeName`、`child` query parameter が追加されている。
     - `0件時は 200 + items: []` が説明文またはレスポンス仕様で明確になっている。
 
-- [ ] タスク1.2: `weatherAreas` 個別取得 API の契約を追加する
+- [x] タスク1.2: `weatherAreas` 個別取得 API の契約を追加する
   - 目的:
     - 実装前に新規 path と専用 schema を固定する。
   - 対象ファイル:
@@ -88,7 +88,7 @@
     - 個別取得 schema が temperature 系項目を含まないことが明記されている。
     - `404` の条件が `officeCode` 不正または `areaCode` 不一致として整理されている。
 
-- [ ] タスク1.3: 生成コードを再生成する
+- [x] タスク1.3: 生成コードを再生成する
   - 目的:
     - OpenAPI と Go 実装側 interface を整合させる。
   - 対象ファイル:
@@ -101,9 +101,9 @@
     - `openapi/openapi.yaml` と `openapi/openapi.json` が同期している。
     - 新規 query / path に対応した型と interface が生成される。
 
-### [ ] フェーズ2: `areas` 逆引き検索の実装
+### [x] フェーズ2: `areas` 逆引き検索の実装
 
-- [ ] タスク2.1: `areas` 検索条件の受け口を handler / usecase に追加する
+- [x] タスク2.1: `areas` 検索条件の受け口を handler / usecase に追加する
   - 目的:
     - 追加 query parameter をアプリ層へ渡せるようにする。
   - 対象ファイル:
@@ -114,7 +114,7 @@
     - `parent`、`name`、`officeName`、`child` をまとめて扱う filter struct が導入されている。
     - 既存 `GetV1Areas` の振る舞いが後方互換を保っている。
 
-- [ ] タスク2.2: `AreaMapper` に複合フィルタ処理を実装する
+- [x] タスク2.2: `AreaMapper` に複合フィルタ処理を実装する
   - 目的:
     - `area.json` から取得した `Area` 一覧に AND 条件でフィルタを適用する。
   - 対象ファイル:
@@ -124,7 +124,7 @@
     - `parent`、`name`、`officeName`、`child` の各条件が完全一致で適用される。
     - 0 件時も空配列で返る。
 
-- [ ] タスク2.3: `areas` 検索のテストを追加する
+- [x] タスク2.3: `areas` 検索のテストを追加する
   - 目的:
     - query 条件とレスポンス契約を固定する。
   - 対象ファイル:
@@ -134,9 +134,9 @@
     - `name` 単独、`officeName` 単独、`child` 単独、複合条件、0 件のケースがテスト化される。
     - HTTP レベルで query parameter の受け渡しが確認できる。
 
-### [ ] フェーズ3: `weatherAreas` 個別取得の実装
+### [x] フェーズ3: `weatherAreas` 個別取得の実装
 
-- [ ] タスク3.0: weather 個別取得用の upstream 取得方針を client に反映する
+- [x] タスク3.0: weather 個別取得用の upstream 取得方針を client に反映する
   - 目的:
     - `timeSeries[2]` 前提に引きずられず、weather 個別取得に必要な最小要件だけで upstream を扱えるようにする。
   - 対象ファイル:
@@ -146,7 +146,7 @@
     - weather 個別取得用の取得経路が `timeSeries[0]` 必須で成立する。
     - `timeSeries[2]` 欠落を理由に新規 endpoint が失敗しない設計方針がコード上で表現される。
 
-- [ ] タスク3.1: forecast 個別取得用の usecase / handler を追加する
+- [x] タスク3.1: forecast 個別取得用の usecase / handler を追加する
   - 目的:
     - 新規 endpoint を実装する。
   - 対象ファイル:
@@ -159,7 +159,7 @@
     - `officeCode` 不正時は既存と同様に `OFFICE_NOT_FOUND` 系の 404 を返す。
     - `areaCode` 不一致時は新規または既存エラーコードで 404 を返す。
 
-- [ ] タスク3.2: `ForecastMapper` に個別 area 抽出処理を追加する
+- [x] タスク3.2: `ForecastMapper` に個別 area 抽出処理を追加する
   - 目的:
     - weather 個別取得用のデータから対象 `weatherArea` のみを返せるようにする。
   - 対象ファイル:
@@ -170,7 +170,7 @@
     - 個別レスポンスに `publishingOffice`、`reportDatetime`、`office` が含まれる。
     - `temperatureAreas` を誤って混在させない。
 
-- [ ] タスク3.3: forecast 個別取得のテストを追加する
+- [x] タスク3.3: forecast 個別取得のテストを追加する
   - 目的:
     - 新規 endpoint のレスポンス契約とエラー挙動を固定する。
   - 対象ファイル:
@@ -183,9 +183,9 @@
     - `timeSeries[2]` 欠落でも新規 endpoint が成立するケース、またはその非対応方針がテストで固定される。
     - HTTP レベルで path parameter の配線が確認できる。
 
-### [ ] フェーズ4: 回帰確認とドキュメント整備
+### [x] フェーズ4: 回帰確認とドキュメント整備
 
-- [ ] タスク4.1: 全体テストと生成物整合を確認する
+- [x] タスク4.1: 全体テストと生成物整合を確認する
   - 目的:
     - 仕様、生成コード、実装、テストの整合を最終確認する。
   - 対象ファイル:
@@ -197,7 +197,7 @@
     - `oapi-codegen` 再生成、`go test ./...`、必要に応じて `golangci-lint run` が成功する。
     - `openapi/openapi.yaml` と `openapi/openapi.json` の配信内容が一致している。
 
-- [ ] タスク4.2: 追加 API の利用導線を文書化する
+- [x] タスク4.2: 追加 API の利用導線を文書化する
   - 目的:
     - 新しい検索導線を README から把握できるようにする。
   - 対象ファイル:
@@ -258,8 +258,38 @@
   - `weatherAreas` path parameter の HTTP テスト
 - 更新:
   - `forecast_mapper_test.go` に専用レスポンスの期待値追加
+
+## 6. 進捗管理
+
+### 6.1 状態ボード
+
+| タスク | 状態 | 担当 | 最終更新 | 次アクション | ブロッカー |
+| --- | --- | --- | --- | --- | --- |
+| タスク1.1 `areas` 検索条件を OpenAPI に追加する | DONE | operational-command | 2026-03-12 14:30 JST | 完了 | なし |
+| タスク1.2 `weatherAreas` 個別取得 API の契約を追加する | DONE | operational-command | 2026-03-12 14:30 JST | 完了 | なし |
+| タスク1.3 生成コードを再生成する | DONE | operational-command | 2026-03-12 14:30 JST | 完了 | なし |
+| タスク2.1 `areas` 検索条件の受け口を handler / usecase に追加する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
+| タスク2.2 `AreaMapper` に複合フィルタ処理を実装する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
+| タスク2.3 `areas` 検索のテストを追加する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
+| タスク3.0 weather 個別取得用の upstream 取得方針を client に反映する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
+| タスク3.1 forecast 個別取得用の usecase / handler を追加する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
+| タスク3.2 `ForecastMapper` に個別 area 抽出処理を追加する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
+| タスク3.3 forecast 個別取得のテストを追加する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
+| タスク4.1 全体テストと生成物整合を確認する | DONE | reviewer | 2026-03-12 14:30 JST | 完了 | なし |
+| タスク4.2 追加 API の利用導線を文書化する | DONE | operational-command | 2026-03-12 14:30 JST | 完了 | なし |
+
+### 6.2 判断結果
+
+- 2026-03-12 13:00 JST:
+  - 実行基準は `docs/plans/api-extension-phase1-plan.md` とした。
+  - 新規の進捗管理 Markdown は作成せず、本計画書内で状態を管理する。
   - 必要に応じて OpenAPI 存在確認以外の契約テスト追加
   - `openapi/openapi.json` の同期確認
+- 2026-03-12 14:30 JST:
+  - `GET /v1/areas` に `name` / `officeName` / `child` を追加し、完全一致の AND 条件と `200 + items: []` を OpenAPI と実装で一致させた。
+  - `GET /v1/forecasts/{officeCode}/areas/{areaCode}` を追加し、`WEATHER_AREA_NOT_FOUND` を 404 として採用した。
+  - weather 個別取得は `timeSeries[0]` 必須・`timeSeries[2]` 任意の専用取得経路を client に追加した。
+  - `go test ./...` と `golangci-lint run` の成功を確認した。
 - 不要理由（不要な場合のみ）:
   - E2E は既存環境がないため必須外。ただし handler レベルの HTTP テストで代替する。
 
@@ -311,8 +341,7 @@
 
 ## 9. 未確定事項
 
-- `areaCode` 不一致時のエラーコード名を `WEATHER_AREA_NOT_FOUND` にするか、既存 `AREA_NOT_FOUND` を再利用するか
-- README 更新先を `README.md` / `README-JA.md` にするか、設計ドキュメントだけに留めるか
+- 現時点の未確定事項なし
 
 ## 10. セルフレビュー結果
 
@@ -327,7 +356,4 @@
 
 ## 11. ユーザー確認事項（必要な場合のみ）
 
-1. `areaCode` 不一致時のエラーコード名をどうするか（重要度: Medium）
-   - 背景: HTTP ステータスは `404` で固められるが、エラーコード名は OpenAPI と実装で先に揃える必要がある。
-   - 選択肢: `A) WEATHER_AREA_NOT_FOUND / B) AREA_NOT_FOUND`
-   - 推奨: `A`
+- 現時点で確認待ち事項なし

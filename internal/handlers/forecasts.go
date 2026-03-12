@@ -15,3 +15,13 @@ func (s *Server) GetV1ForecastsOfficeCode(w http.ResponseWriter, r *http.Request
 
 	writeJSON(w, http.StatusOK, response)
 }
+
+func (s *Server) GetV1ForecastsOfficeCodeAreasAreaCode(w http.ResponseWriter, r *http.Request, officeCode string, areaCode string) {
+	response, err := s.forecastUsecase.GetArea(r.Context(), officeCode, areaCode)
+	if err != nil {
+		writeHandlerError(w, r, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, response)
+}

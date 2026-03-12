@@ -59,7 +59,7 @@
         ],
         "operationId": "getV1Areas",
         "summary": "List area metadata",
-        "description": "気象庁の office 一覧を返す。`parent` 指定時は parent 一致のみ返す。",
+        "description": "気象庁の office 一覧を返す。`parent`、`name`、`officeName`、`child` は完全一致の AND 条件として扱い、0 件時は `200` と空の `items` を返す。",
         "parameters": [
           {
             "in": "query",
@@ -69,6 +69,33 @@
             },
             "required": false,
             "description": "offices.parent でのフィルタ。"
+          },
+          {
+            "in": "query",
+            "name": "name",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "offices.name での完全一致フィルタ。"
+          },
+          {
+            "in": "query",
+            "name": "officeName",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "offices.officeName での完全一致フィルタ。"
+          },
+          {
+            "in": "query",
+            "name": "child",
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "description": "offices.children に含まれる child code での完全一致フィルタ。"
           }
         ],
         "responses": {
@@ -172,6 +199,65 @@
           },
           "404": {
             "$ref": "#/components/responses/ErrorResponse"
+          },
+          "502": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
+          "503": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
+          "default": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/v1/forecasts/{officeCode}/areas/{areaCode}": {
+      "get": {
+        "tags": [
+          "forecasts"
+        ],
+        "operationId": "getV1ForecastsOfficeCodeAreasAreaCode",
+        "summary": "Get forecast for a weather area by office code",
+        "description": "指定した office code の forecast から対象 weather area のみを返す。レスポンスには temperature 系項目を含めない。",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "officeCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "areaCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastAreaResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "officeCode が不正、または areaCode に一致する weatherArea が存在しない。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           },
           "502": {
             "$ref": "#/components/responses/ErrorResponse"
@@ -306,6 +392,31 @@
             "items": {
               "$ref": "#/components/schemas/TemperatureArea"
             }
+          }
+        }
+      },
+      "ForecastAreaResponse": {
+        "type": "object",
+        "required": [
+          "office",
+          "publishingOffice",
+          "reportDatetime",
+          "weatherArea"
+        ],
+        "description": "weatherArea 単位の個別予報レスポンス。temperature 系項目は含まない。",
+        "properties": {
+          "office": {
+            "$ref": "#/components/schemas/OfficeRef"
+          },
+          "publishingOffice": {
+            "type": "string"
+          },
+          "reportDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "weatherArea": {
+            "$ref": "#/components/schemas/WeatherArea"
           }
         }
       },

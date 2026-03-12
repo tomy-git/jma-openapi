@@ -5,6 +5,8 @@
 package mappers
 
 import (
+	"time"
+
 	"github.com/tomy-git/jma-openapi/internal/clients"
 	"github.com/tomy-git/jma-openapi/internal/gen"
 )
@@ -15,24 +17,69 @@ func NewForecastMapper() ForecastMapper {
 	return ForecastMapper{}
 }
 
-func (m ForecastMapper) ToForecastResponse(report clients.ForecastReportJSON, office gen.Area) gen.ForecastResponse {
+func (m ForecastMapper) ToForecastResponse(report clients.ForecastReportJSON, office gen.Area) (gen.ForecastResponse, error) {
+	reportDatetime, err := parseForecastTime(report.ReportDatetime)
+	if err != nil {
+		return gen.ForecastResponse{}, err
+	}
+
+	weatherAreas, err := m.mergeWeatherAreas(report)
+	if err != nil {
+		return gen.ForecastResponse{}, err
+	}
+
+	temperatureAreas, err := m.temperatureAreas(report)
+	if err != nil {
+		return gen.ForecastResponse{}, err
+	}
+
 	response := gen.ForecastResponse{
 		Office: gen.OfficeRef{
 			Code: office.Code,
 			Name: office.Name,
 		},
 		PublishingOffice: report.PublishingOffice,
-		ReportDatetime:   report.ReportDatetime,
-		WeatherAreas:     m.mergeWeatherAreas(report),
-		TemperatureAreas: m.temperatureAreas(report),
+		ReportDatetime:   reportDatetime,
+		WeatherAreas:     weatherAreas,
+		TemperatureAreas: temperatureAreas,
 	}
 
-	return response
+	return response, nil
 }
 
-func (m ForecastMapper) mergeWeatherAreas(report clients.ForecastReportJSON) []gen.WeatherArea {
+func (m ForecastMapper) ToForecastAreaResponse(report clients.ForecastReportJSON, office gen.Area, areaCode string) (gen.ForecastAreaResponse, bool, error) {
+	reportDatetime, err := parseForecastTime(report.ReportDatetime)
+	if err != nil {
+		return gen.ForecastAreaResponse{}, false, err
+	}
+
+	weatherAreas, err := m.mergeWeatherAreas(report)
+	if err != nil {
+		return gen.ForecastAreaResponse{}, false, err
+	}
+
+	for _, weatherArea := range weatherAreas {
+		if weatherArea.Code != areaCode {
+			continue
+		}
+
+		return gen.ForecastAreaResponse{
+			Office: gen.OfficeRef{
+				Code: office.Code,
+				Name: office.Name,
+			},
+			PublishingOffice: report.PublishingOffice,
+			ReportDatetime:   reportDatetime,
+			WeatherArea:      weatherArea,
+		}, true, nil
+	}
+
+	return gen.ForecastAreaResponse{}, false, nil
+}
+
+func (m ForecastMapper) mergeWeatherAreas(report clients.ForecastReportJSON) ([]gen.WeatherArea, error) {
 	if len(report.WeatherSeries) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	popLookup := map[string]clients.ForecastAreaPopJSON{}
@@ -48,8 +95,13 @@ func (m ForecastMapper) mergeWeatherAreas(report clients.ForecastReportJSON) []g
 	for _, area := range report.WeatherSeries[0].Areas {
 		entries := make([]gen.WeatherTimeSeriesEntry, 0, len(report.WeatherSeries[0].TimeDefines))
 		for idx, timeValue := range report.WeatherSeries[0].TimeDefines {
+			parsedTime, err := parseForecastTime(timeValue)
+			if err != nil {
+				return nil, err
+			}
+
 			entry := gen.WeatherTimeSeriesEntry{
-				Time:        timeValue,
+				Time:        parsedTime,
 				WeatherCode: stringAt(area.WeatherCodes, idx),
 				Weather:     stringAt(area.Weathers, idx),
 				Wind:        stringAt(area.Winds, idx),
@@ -72,20 +124,25 @@ func (m ForecastMapper) mergeWeatherAreas(report clients.ForecastReportJSON) []g
 		})
 	}
 
-	return items
+	return items, nil
 }
 
-func (m ForecastMapper) temperatureAreas(report clients.ForecastReportJSON) []gen.TemperatureArea {
+func (m ForecastMapper) temperatureAreas(report clients.ForecastReportJSON) ([]gen.TemperatureArea, error) {
 	if len(report.TempSeries) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	items := make([]gen.TemperatureArea, 0, len(report.TempSeries[0].Areas))
 	for _, area := range report.TempSeries[0].Areas {
 		entries := make([]gen.TemperatureTimeSeriesEntry, 0, len(report.TempSeries[0].TimeDefines))
 		for idx, timeValue := range report.TempSeries[0].TimeDefines {
+			parsedTime, err := parseForecastTime(timeValue)
+			if err != nil {
+				return nil, err
+			}
+
 			entries = append(entries, gen.TemperatureTimeSeriesEntry{
-				Time: timeValue,
+				Time: parsedTime,
 				Temp: stringAt(area.Temps, idx),
 			})
 		}
@@ -97,7 +154,11 @@ func (m ForecastMapper) temperatureAreas(report clients.ForecastReportJSON) []ge
 		})
 	}
 
-	return items
+	return items, nil
+}
+
+func parseForecastTime(value string) (time.Time, error) {
+	return time.Parse(time.RFC3339, value)
 }
 
 func stringAt(items []string, index int) *string {

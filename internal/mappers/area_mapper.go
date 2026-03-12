@@ -13,14 +13,30 @@ import (
 
 type AreaMapper struct{}
 
+type AreaFilter struct {
+	Parent     *string
+	Name       *string
+	OfficeName *string
+	Child      *string
+}
+
 func NewAreaMapper() AreaMapper {
 	return AreaMapper{}
 }
 
-func (m AreaMapper) ToAreasResponse(document clients.AreaJSONDocument, parent *string) gen.AreasResponse {
+func (m AreaMapper) ToAreasResponse(document clients.AreaJSONDocument, filter AreaFilter) gen.AreasResponse {
 	items := make([]gen.Area, 0, len(document.Offices))
 	for code, office := range document.Offices {
-		if parent != nil && office.Parent != *parent {
+		if filter.Parent != nil && office.Parent != *filter.Parent {
+			continue
+		}
+		if filter.Name != nil && office.Name != *filter.Name {
+			continue
+		}
+		if filter.OfficeName != nil && office.OfficeName != *filter.OfficeName {
+			continue
+		}
+		if filter.Child != nil && !containsString(office.Children, *filter.Child) {
 			continue
 		}
 
@@ -39,6 +55,16 @@ func (m AreaMapper) ToAreasResponse(document clients.AreaJSONDocument, parent *s
 	})
 
 	return gen.AreasResponse{Items: items}
+}
+
+func containsString(items []string, target string) bool {
+	for _, item := range items {
+		if item == target {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (m AreaMapper) ToArea(document clients.AreaJSONDocument, areaCode string) (gen.Area, bool) {

@@ -39,7 +39,7 @@ func main() {
 	router.Use(middleware.RequestID)
 	router.Use(shared.RequestLoggingMiddleware(logger))
 
-	gen.RegisterHandlers(router, server)
+	gen.HandlerFromMux(server, router)
 	registerOpenAPIRoutes(router)
 
 	address := fmt.Sprintf(":%s", cfg.Port)

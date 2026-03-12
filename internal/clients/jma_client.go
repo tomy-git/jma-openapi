@@ -68,8 +68,8 @@ type ForecastTimeSeriesTempJSON struct {
 }
 
 type ForecastReportJSON struct {
-	PublishingOffice string                        `json:"publishingOffice"`
-	ReportDatetime   string                        `json:"reportDatetime"`
+	PublishingOffice string `json:"publishingOffice"`
+	ReportDatetime   string `json:"reportDatetime"`
 	WeatherSeries    []ForecastTimeSeriesWeatherJSON
 	PopSeries        []ForecastTimeSeriesPopJSON
 	TempSeries       []ForecastTimeSeriesTempJSON
@@ -84,6 +84,7 @@ type forecastReportWire struct {
 type JMAClient interface {
 	FetchAreaDocument(ctx context.Context) (AreaJSONDocument, error)
 	FetchForecastDocument(ctx context.Context, officeCode string) (ForecastReportJSON, error)
+	FetchWeatherAreaForecastDocument(ctx context.Context, officeCode string) (ForecastReportJSON, error)
 }
 
 type HTTPJMAClient struct {
@@ -154,65 +155,94 @@ func (c *HTTPJMAClient) FetchAreaDocument(ctx context.Context) (AreaJSONDocument
 }
 
 func (c *HTTPJMAClient) FetchForecastDocument(ctx context.Context, officeCode string) (ForecastReportJSON, error) {
+	reportWire, err := c.fetchForecastReportWire(ctx, officeCode)
+	if err != nil {
+		return ForecastReportJSON{}, err
+	}
+
+	if len(reportWire.TimeSeries) < 3 {
+		return ForecastReportJSON{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_SCHEMA_MISMATCH", "forecast payload did not include required timeSeries entries", map[string]any{"officeCode": officeCode}, nil)
+	}
+
+	return decodeForecastReport(reportWire, officeCode, true)
+}
+
+func (c *HTTPJMAClient) FetchWeatherAreaForecastDocument(ctx context.Context, officeCode string) (ForecastReportJSON, error) {
+	reportWire, err := c.fetchForecastReportWire(ctx, officeCode)
+	if err != nil {
+		return ForecastReportJSON{}, err
+	}
+
+	if len(reportWire.TimeSeries) == 0 {
+		return ForecastReportJSON{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_SCHEMA_MISMATCH", "forecast payload did not include required weather timeSeries", map[string]any{"officeCode": officeCode}, nil)
+	}
+
+	return decodeForecastReport(reportWire, officeCode, false)
+}
+
+func (c *HTTPJMAClient) fetchForecastReportWire(ctx context.Context, officeCode string) (forecastReportWire, error) {
 	url := fmt.Sprintf("%s/forecast/data/forecast/%s.json", c.baseURL, officeCode)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return ForecastReportJSON{}, shared.NewAppError(http.StatusInternalServerError, "REQUEST_BUILD_FAILED", "failed to build upstream request", nil, err)
+		return forecastReportWire{}, shared.NewAppError(http.StatusInternalServerError, "REQUEST_BUILD_FAILED", "failed to build upstream request", nil, err)
 	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return ForecastReportJSON{}, shared.NewAppError(http.StatusServiceUnavailable, "UPSTREAM_UNAVAILABLE", "failed to fetch forecast from upstream", map[string]any{"officeCode": officeCode}, err)
+		return forecastReportWire{}, shared.NewAppError(http.StatusServiceUnavailable, "UPSTREAM_UNAVAILABLE", "failed to fetch forecast from upstream", map[string]any{"officeCode": officeCode}, err)
 	}
 	defer func() {
 		_ = resp.Body.Close()
 	}()
 
 	if resp.StatusCode == http.StatusNotFound {
-		return ForecastReportJSON{}, shared.NewAppError(http.StatusNotFound, "OFFICE_NOT_FOUND", "office code was not found", map[string]any{"officeCode": officeCode}, nil)
+		return forecastReportWire{}, shared.NewAppError(http.StatusNotFound, "OFFICE_NOT_FOUND", "office code was not found", map[string]any{"officeCode": officeCode}, nil)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return ForecastReportJSON{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_BAD_RESPONSE", "upstream returned non-200 for forecast", map[string]any{"status": resp.StatusCode, "officeCode": officeCode}, nil)
+		return forecastReportWire{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_BAD_RESPONSE", "upstream returned non-200 for forecast", map[string]any{"status": resp.StatusCode, "officeCode": officeCode}, nil)
 	}
 
 	var reports []forecastReportWire
 	if err := json.NewDecoder(resp.Body).Decode(&reports); err != nil {
-		return ForecastReportJSON{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_DECODE_FAILED", "failed to decode forecast", map[string]any{"officeCode": officeCode}, err)
+		return forecastReportWire{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_DECODE_FAILED", "failed to decode forecast", map[string]any{"officeCode": officeCode}, err)
 	}
 
 	if len(reports) == 0 {
-		return ForecastReportJSON{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_EMPTY_RESPONSE", "forecast payload was empty", map[string]any{"officeCode": officeCode}, nil)
-	}
-	if len(reports[0].TimeSeries) < 3 {
-		return ForecastReportJSON{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_SCHEMA_MISMATCH", "forecast payload did not include required timeSeries entries", map[string]any{"officeCode": officeCode}, nil)
+		return forecastReportWire{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_EMPTY_RESPONSE", "forecast payload was empty", map[string]any{"officeCode": officeCode}, nil)
 	}
 
+	return reports[0], nil
+}
+
+func decodeForecastReport(reportWire forecastReportWire, officeCode string, requireTempSeries bool) (ForecastReportJSON, error) {
 	report := ForecastReportJSON{
-		PublishingOffice: reports[0].PublishingOffice,
-		ReportDatetime:   reports[0].ReportDatetime,
+		PublishingOffice: reportWire.PublishingOffice,
+		ReportDatetime:   reportWire.ReportDatetime,
 	}
 
-	if len(reports[0].TimeSeries) > 0 {
+	if len(reportWire.TimeSeries) > 0 {
 		var weather ForecastTimeSeriesWeatherJSON
-		if err := json.Unmarshal(reports[0].TimeSeries[0], &weather); err != nil {
+		if err := json.Unmarshal(reportWire.TimeSeries[0], &weather); err != nil {
 			return ForecastReportJSON{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_SCHEMA_MISMATCH", "failed to decode weather forecast timeSeries", map[string]any{"officeCode": officeCode, "index": 0}, err)
 		}
 		report.WeatherSeries = []ForecastTimeSeriesWeatherJSON{weather}
 	}
-	if len(reports[0].TimeSeries) > 1 {
+	if len(reportWire.TimeSeries) > 1 {
 		var pops ForecastTimeSeriesPopJSON
-		if err := json.Unmarshal(reports[0].TimeSeries[1], &pops); err != nil {
+		if err := json.Unmarshal(reportWire.TimeSeries[1], &pops); err != nil {
 			return ForecastReportJSON{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_SCHEMA_MISMATCH", "failed to decode precipitation probability timeSeries", map[string]any{"officeCode": officeCode, "index": 1}, err)
 		}
 		report.PopSeries = []ForecastTimeSeriesPopJSON{pops}
 	}
-	if len(reports[0].TimeSeries) > 2 {
+	if len(reportWire.TimeSeries) > 2 {
 		var temps ForecastTimeSeriesTempJSON
-		if err := json.Unmarshal(reports[0].TimeSeries[2], &temps); err != nil {
+		if err := json.Unmarshal(reportWire.TimeSeries[2], &temps); err != nil {
 			return ForecastReportJSON{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_SCHEMA_MISMATCH", "failed to decode temperature forecast timeSeries", map[string]any{"officeCode": officeCode, "index": 2}, err)
 		}
 		report.TempSeries = []ForecastTimeSeriesTempJSON{temps}
+	} else if requireTempSeries {
+		return ForecastReportJSON{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_SCHEMA_MISMATCH", "forecast payload did not include required timeSeries entries", map[string]any{"officeCode": officeCode}, nil)
 	}
 
 	return report, nil

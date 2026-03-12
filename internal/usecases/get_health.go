@@ -27,6 +27,6 @@ func (u HealthUsecase) Execute() gen.HealthResponse {
 		Status:    "ok",
 		Service:   u.service,
 		Version:   u.version,
-		Timestamp: time.Now().UTC().Format(time.RFC3339),
+		Timestamp: time.Now().UTC(),
 	}
 }
