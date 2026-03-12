@@ -124,7 +124,9 @@ func (c *HTTPJMAClient) FetchAreaDocument(ctx context.Context) (AreaJSONDocument
 	if err != nil {
 		return AreaJSONDocument{}, shared.NewAppError(http.StatusServiceUnavailable, "UPSTREAM_UNAVAILABLE", "failed to fetch area metadata from upstream", nil, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return AreaJSONDocument{}, shared.NewAppError(http.StatusBadGateway, "UPSTREAM_BAD_RESPONSE", "upstream returned non-200 for area metadata", map[string]any{"status": resp.StatusCode}, nil)
@@ -158,7 +160,9 @@ func (c *HTTPJMAClient) FetchForecastDocument(ctx context.Context, officeCode st
 	if err != nil {
 		return ForecastReportJSON{}, shared.NewAppError(http.StatusServiceUnavailable, "UPSTREAM_UNAVAILABLE", "failed to fetch forecast from upstream", map[string]any{"officeCode": officeCode}, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return ForecastReportJSON{}, shared.NewAppError(http.StatusNotFound, "OFFICE_NOT_FOUND", "office code was not found", map[string]any{"officeCode": officeCode}, nil)

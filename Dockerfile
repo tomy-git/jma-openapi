@@ -1,8 +1,15 @@
-FROM golang:1.26.1-bullseye AS builder
+FROM golang:1.26.1-bookworm AS base
 WORKDIR /workspace
-COPY go.mod ./
+COPY go.mod go.sum ./
 RUN go env -w GOPATH=/go && go mod download
 COPY . .
+
+FROM base AS verify
+RUN CGO_ENABLED=0 go test ./...
+RUN go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.11.3
+RUN /go/bin/golangci-lint run
+
+FROM verify AS builder
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /workspace/bin/jma-openapi ./cmd/server
 
 FROM gcr.io/distroless/static:nonroot

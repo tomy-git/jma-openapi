@@ -137,3 +137,18 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Go
+bin/
+*.test
+coverage.out
+.coverprofile
+
+# Local planning notes
+docs/plans/
+
+# mise local override
+.mise.local.toml
+
+# macOS
+.DS_Store
