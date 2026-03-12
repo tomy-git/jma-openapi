@@ -33,7 +33,11 @@ annotate_dir() {
     "$1"
 }
 
-uvx reuse download MPL-2.0 MIT
+for license in MPL-2.0 MIT; do
+  if [ ! -f "LICENSES/${license}.txt" ]; then
+    uvx reuse download "$license"
+  fi
+done
 
 annotate_file .gitignore
 annotate_file .golangci.yml
@@ -52,17 +56,21 @@ annotate_dir openapi
 annotate_dir scripts
 annotate_dir tests
 
-uvx reuse annotate \
-  --copyright "$copyright_holder" \
-  --license MPL-2.0 \
-  --year "$copyright_year" \
-  --force-dot-license \
-  --skip-existing \
-  docs/adr/adr-001-language-and-router-selection.md
+if [ -f docs/adr/adr-001-language-and-router-selection.md ]; then
+  uvx reuse annotate \
+    --copyright "$copyright_holder" \
+    --license MPL-2.0 \
+    --year "$copyright_year" \
+    --force-dot-license \
+    --skip-existing \
+    docs/adr/adr-001-language-and-router-selection.md
+fi
 
-uvx reuse annotate \
-  --copyright "Scalar contributors" \
-  --license MIT \
-  --force-dot-license \
-  --skip-existing \
-  web/scalar-api-reference.js
+if [ -f web/scalar-api-reference.js ]; then
+  uvx reuse annotate \
+    --copyright "Scalar contributors" \
+    --license MIT \
+    --force-dot-license \
+    --skip-existing \
+    web/scalar-api-reference.js
+fi
