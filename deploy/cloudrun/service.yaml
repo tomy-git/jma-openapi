@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 The jma-openapi contributors
+#
+# SPDX-License-Identifier: MPL-2.0
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: jma-openapi
+  namespace: default
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "10"
+    spec:
+      containers:
+        - image: gcr.io/<PROJECT_ID>/jma-openapi:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+      timeoutSeconds: 300
+      containerConcurrency: 80

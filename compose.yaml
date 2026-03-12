@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 The jma-openapi contributors
+#
+# SPDX-License-Identifier: MPL-2.0
+
+services:
+  app:
+    image: jma-openapi:local
+    build:
+      context: .
+    ports:
+      - "8080:8080"

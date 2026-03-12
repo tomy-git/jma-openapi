@@ -14,7 +14,7 @@
 - 上流の JMA BOSAI JSON は外部依存として扱い、仕様変更を常に想定する。
 - 実装済みエンドポイントと OpenAPI ドキュメントは同時に整備する。
 - OpenAPI 仕様を API コントラクトの正本として扱う。
-- 現時点のリポジトリには実装資産がなく、設計書は新規作成である。
+- 設計と実装は同一リポジトリ内で管理する。
 
 ### 確認済みの事実
 
@@ -304,26 +304,26 @@ flowchart LR
 
 初期リリースでは `forecast/{officeCode}.json` の先頭要素のみを対象とし、第2要素の `precipAverage`、`tempAverage`、`reliabilities`、`tempsMax*`、`tempsMin*` は返却契約に含めない。先頭要素の `timeSeries[0]` と `timeSeries[1]` は同一の area code 体系であるため `weatherAreas` に統合し、`timeSeries[2]` は別の area code 体系であるため `temperatureAreas` として独立させる。
 
-| API 項目 | upstream 元 | 初期リリースの扱い |
-| --- | --- | --- |
-| `office.code` | path `officeCode` | 採用 |
-| `office.name` | `area.json.offices[officeCode].name` | 採用 |
-| `publishingOffice` | `publishingOffice` | 採用 |
-| `reportDatetime` | `reportDatetime` | 採用 |
-| `weatherAreas[].code` | `timeSeries[0].areas[].area.code` | 採用 |
-| `weatherAreas[].name` | `timeSeries[0].areas[].area.name` | 採用 |
-| `weatherAreas[].timeSeries[].weatherCode` | `timeSeries[0].areas[].weatherCodes[]` | 採用 |
-| `weatherAreas[].timeSeries[].weather` | `timeSeries[0].areas[].weathers[]` | 採用 |
-| `weatherAreas[].timeSeries[].wind` | `timeSeries[0].areas[].winds[]` | 採用 |
-| `weatherAreas[].timeSeries[].wave` | `timeSeries[0].areas[].waves[]` | 採用 |
-| `weatherAreas[].timeSeries[].pop` | `timeSeries[1].areas[].pops[]` | 採用 |
-| `temperatureAreas[].code` | `timeSeries[2].areas[].area.code` | 採用 |
-| `temperatureAreas[].name` | `timeSeries[2].areas[].area.name` | 採用 |
-| `temperatureAreas[].timeSeries[].temp` | `timeSeries[2].areas[].temps[]` | 採用 |
-| `precipAverage` | 先頭要素以外 | 不採用 |
-| `tempAverage` | 先頭要素以外 | 不採用 |
-| `reliabilities` | 先頭要素以外 | 不採用 |
-| `tempsMax* / tempsMin*` | 先頭要素以外 | 不採用 |
+| API 項目                                  | upstream 元                            | 初期リリースの扱い |
+| ----------------------------------------- | -------------------------------------- | ------------------ |
+| `office.code`                             | path `officeCode`                      | 採用               |
+| `office.name`                             | `area.json.offices[officeCode].name`   | 採用               |
+| `publishingOffice`                        | `publishingOffice`                     | 採用               |
+| `reportDatetime`                          | `reportDatetime`                       | 採用               |
+| `weatherAreas[].code`                     | `timeSeries[0].areas[].area.code`      | 採用               |
+| `weatherAreas[].name`                     | `timeSeries[0].areas[].area.name`      | 採用               |
+| `weatherAreas[].timeSeries[].weatherCode` | `timeSeries[0].areas[].weatherCodes[]` | 採用               |
+| `weatherAreas[].timeSeries[].weather`     | `timeSeries[0].areas[].weathers[]`     | 採用               |
+| `weatherAreas[].timeSeries[].wind`        | `timeSeries[0].areas[].winds[]`        | 採用               |
+| `weatherAreas[].timeSeries[].wave`        | `timeSeries[0].areas[].waves[]`        | 採用               |
+| `weatherAreas[].timeSeries[].pop`         | `timeSeries[1].areas[].pops[]`         | 採用               |
+| `temperatureAreas[].code`                 | `timeSeries[2].areas[].area.code`      | 採用               |
+| `temperatureAreas[].name`                 | `timeSeries[2].areas[].area.name`      | 採用               |
+| `temperatureAreas[].timeSeries[].temp`    | `timeSeries[2].areas[].temps[]`        | 採用               |
+| `precipAverage`                           | 先頭要素以外                           | 不採用             |
+| `tempAverage`                             | 先頭要素以外                           | 不採用             |
+| `reliabilities`                           | 先頭要素以外                           | 不採用             |
+| `tempsMax* / tempsMin*`                   | 先頭要素以外                           | 不採用             |
 
 ### Forecast レスポンスの最小形
 
@@ -505,32 +505,3 @@ flowchart LR
 - 対策:
   - 初期リリースは forecast 1 系統に限定する。
   - 追加対象は別 ADR または別設計章で扱う。
-
-## 残課題
-
-- Cloud Run の CPU / memory / concurrency の初期値を決める。
-- Dockerfile のベースイメージとマルチステージ構成の詳細を決める。
-
-## 次アクション
-
-1. `docs/adr/adr-001-language-and-router-selection.md` を作成し、Go と `chi` 採用理由を ADR 化する。
-2. `docs/adr/adr-002-openapi-generation-strategy.md` を作成し、spec-first、`oapi-codegen` 採用、`JSON/YAML` 併記、UI 同梱、生成配置ルールを固定する。
-3. `docs/adr/adr-003-deployment-and-logging.md` を作成し、Cloud Run と `log/slog` 採用理由を ADR 化する。
-4. `openapi/openapi.yaml` の初期雛形を作成する。
-5. `Dockerfile` と `deploy/cloudrun/service.yaml` の初期雛形を作成する。
-6. `cmd/` と `internal/` の初期 scaffold を作成する。
-7. `area.json` と `forecast/130000.json` を fixture 化し、areas / forecast mapper のプロトタイプを実装する。
-
-## 根拠
-
-本設計書は、現在の README に反映済みの方針に合わせて更新している。
-
-確認済みの前提:
-
-- Go を実装言語として採用する。
-- `chi` をルータとして採用する。
-- `oapi-codegen` による spec-first の OpenAPI コード生成を採用する。
-- `net/http` を HTTP 基盤として利用する。
-- JMA の `area.json` および `forecast/{officeCode}.json` を初期対象とする。
-- 初期デプロイ先は Cloud Run とする。
-- 構造化ログには `log/slog` を採用する。

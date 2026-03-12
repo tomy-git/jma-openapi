@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2026 The jma-openapi contributors
+#
+# SPDX-License-Identifier: MPL-2.0
+
+package: gen
+generate:
+  models: true
+output: ../internal/gen/types.gen.go
