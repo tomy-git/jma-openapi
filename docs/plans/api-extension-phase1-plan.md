@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2026 The jma-openapi contributors
+
+SPDX-License-Identifier: MPL-2.0
+-->
+
 # API 拡張第1フェーズ 開発計画書
 
 ## 1. 概要
