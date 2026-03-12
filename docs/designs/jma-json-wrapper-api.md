@@ -304,26 +304,26 @@ flowchart LR
 
 初期リリースでは `forecast/{officeCode}.json` の先頭要素のみを対象とし、第2要素の `precipAverage`、`tempAverage`、`reliabilities`、`tempsMax*`、`tempsMin*` は返却契約に含めない。先頭要素の `timeSeries[0]` と `timeSeries[1]` は同一の area code 体系であるため `weatherAreas` に統合し、`timeSeries[2]` は別の area code 体系であるため `temperatureAreas` として独立させる。
 
-| API 項目 | upstream 元 | 初期リリースの扱い |
-| --- | --- | --- |
-| `office.code` | path `officeCode` | 採用 |
-| `office.name` | `area.json.offices[officeCode].name` | 採用 |
-| `publishingOffice` | `publishingOffice` | 採用 |
-| `reportDatetime` | `reportDatetime` | 採用 |
-| `weatherAreas[].code` | `timeSeries[0].areas[].area.code` | 採用 |
-| `weatherAreas[].name` | `timeSeries[0].areas[].area.name` | 採用 |
-| `weatherAreas[].timeSeries[].weatherCode` | `timeSeries[0].areas[].weatherCodes[]` | 採用 |
-| `weatherAreas[].timeSeries[].weather` | `timeSeries[0].areas[].weathers[]` | 採用 |
-| `weatherAreas[].timeSeries[].wind` | `timeSeries[0].areas[].winds[]` | 採用 |
-| `weatherAreas[].timeSeries[].wave` | `timeSeries[0].areas[].waves[]` | 採用 |
-| `weatherAreas[].timeSeries[].pop` | `timeSeries[1].areas[].pops[]` | 採用 |
-| `temperatureAreas[].code` | `timeSeries[2].areas[].area.code` | 採用 |
-| `temperatureAreas[].name` | `timeSeries[2].areas[].area.name` | 採用 |
-| `temperatureAreas[].timeSeries[].temp` | `timeSeries[2].areas[].temps[]` | 採用 |
-| `precipAverage` | 先頭要素以外 | 不採用 |
-| `tempAverage` | 先頭要素以外 | 不採用 |
-| `reliabilities` | 先頭要素以外 | 不採用 |
-| `tempsMax* / tempsMin*` | 先頭要素以外 | 不採用 |
+| API 項目                                  | upstream 元                            | 初期リリースの扱い |
+| ----------------------------------------- | -------------------------------------- | ------------------ |
+| `office.code`                             | path `officeCode`                      | 採用               |
+| `office.name`                             | `area.json.offices[officeCode].name`   | 採用               |
+| `publishingOffice`                        | `publishingOffice`                     | 採用               |
+| `reportDatetime`                          | `reportDatetime`                       | 採用               |
+| `weatherAreas[].code`                     | `timeSeries[0].areas[].area.code`      | 採用               |
+| `weatherAreas[].name`                     | `timeSeries[0].areas[].area.name`      | 採用               |
+| `weatherAreas[].timeSeries[].weatherCode` | `timeSeries[0].areas[].weatherCodes[]` | 採用               |
+| `weatherAreas[].timeSeries[].weather`     | `timeSeries[0].areas[].weathers[]`     | 採用               |
+| `weatherAreas[].timeSeries[].wind`        | `timeSeries[0].areas[].winds[]`        | 採用               |
+| `weatherAreas[].timeSeries[].wave`        | `timeSeries[0].areas[].waves[]`        | 採用               |
+| `weatherAreas[].timeSeries[].pop`         | `timeSeries[1].areas[].pops[]`         | 採用               |
+| `temperatureAreas[].code`                 | `timeSeries[2].areas[].area.code`      | 採用               |
+| `temperatureAreas[].name`                 | `timeSeries[2].areas[].area.name`      | 採用               |
+| `temperatureAreas[].timeSeries[].temp`    | `timeSeries[2].areas[].temps[]`        | 採用               |
+| `precipAverage`                           | 先頭要素以外                           | 不採用             |
+| `tempAverage`                             | 先頭要素以外                           | 不採用             |
+| `reliabilities`                           | 先頭要素以外                           | 不採用             |
+| `tempsMax* / tempsMin*`                   | 先頭要素以外                           | 不採用             |
 
 ### Forecast レスポンスの最小形
 
@@ -506,20 +506,275 @@ flowchart LR
   - 初期リリースは forecast 1 系統に限定する。
   - 追加対象は別 ADR または別設計章で扱う。
 
+## 実行ステータス
+
+- フェーズ1 ADR 群: `DONE`
+  - 最終更新: 2026-03-12
+  - 次アクション: なし
+  - ブロッカー: なし
+- フェーズ2 OpenAPI 契約: `REVIEW`
+  - 最終更新: 2026-03-12
+  - 次アクション: レビュー指摘の反映と生成手順の最終確認
+  - ブロッカー: ローカル環境に `go` がなく、`oapi-codegen` 実生成の確認が未実施
+- フェーズ3 生成設定とアプリ骨格: `REVIEW`
+  - 最終更新: 2026-03-12
+  - 次アクション: レビュー指摘の反映と `go test ./...` による整合確認
+  - ブロッカー: ローカル環境に `go` がない
+- フェーズ4 デプロイ基盤: `REVIEW`
+  - 最終更新: 2026-03-12
+  - 次アクション: コンテナビルド手順の実機確認
+  - ブロッカー: ローカル環境に `go` がなく、Docker ビルド未実施
+- フェーズ5 upstream 取り込みと mapper 実装: `REVIEW`
+  - 最終更新: 2026-03-12
+  - 次アクション: fixture ベースのテスト実行
+  - ブロッカー: ローカル環境に `go` がない
+- フェーズ6 品質確認と公開導線: `IN_PROGRESS`
+  - 最終更新: 2026-03-12
+  - 次アクション: `go test ./...` と `golangci-lint run` の実行、`/docs` 起動確認
+  - ブロッカー: ローカル環境に `go` と `golangci-lint` がない
+
+## フェーズ
+
+### [x] フェーズ1: ADR の確定
+
+- [x] タスク1.1: 言語とルータの ADR を作成する
+  - 目的:
+    - Go と `chi` 採用理由を固定する。
+  - 対象ファイル:
+    - `docs/adr/adr-001-language-and-router-selection.md`
+  - 完了条件:
+    - 採用理由、非採用案、影響範囲が記載されている。
+- [x] タスク1.2: OpenAPI 生成戦略の ADR を作成する
+  - 目的:
+    - spec-first、`oapi-codegen`、`JSON/YAML` 併記、UI 同梱、生成配置ルールを固定する。
+  - 対象ファイル:
+    - `docs/adr/adr-002-openapi-generation-strategy.md`
+  - 完了条件:
+    - 生成対象、正本、公開方式が明文化されている。
+- [x] タスク1.3: デプロイとロギングの ADR を作成する
+  - 目的:
+    - Cloud Run、Dockerfile、`log/slog` の採用理由を固定する。
+  - 対象ファイル:
+    - `docs/adr/adr-003-deployment-and-logging.md`
+  - 完了条件:
+    - デプロイ方針とログ方針が README / 設計書と矛盾しない。
+- 目的:
+  - 言語、ルータ、OpenAPI 生成、デプロイ、ロギングの採用理由を文書として固定する。
+- 入力:
+  - [README.md](../../README.md)
+  - 本設計書
+- 出力:
+  - `docs/adr/adr-001-language-and-router-selection.md`
+  - `docs/adr/adr-002-openapi-generation-strategy.md`
+  - `docs/adr/adr-003-deployment-and-logging.md`
+- 完了条件:
+  - 各 ADR に採用理由、非採用案、影響範囲が記載されている。
+  - README と設計書の決定事項と矛盾がない。
+- リスク:
+  - ADR の粒度が粗いと、後続フェーズで再議論が発生する。
+
+### [x] フェーズ2: OpenAPI 契約の初版作成
+
+- [x] タスク2.1: `healthz` の OpenAPI 契約を記述する
+  - 目的:
+    - liveness 用の基本契約を定義する。
+  - 対象ファイル:
+    - `openapi/openapi.yaml`
+  - 完了条件:
+    - `GET /healthz` の request/response が定義されている。
+- [x] タスク2.2: `areas` と `forecasts` の OpenAPI 契約を記述する
+  - 目的:
+    - 初期スコープの中核 API 契約を定義する。
+  - 対象ファイル:
+    - `openapi/openapi.yaml`
+  - 完了条件:
+    - `GET /v1/areas`、`GET /v1/areas/{areaCode}`、`GET /v1/forecasts/{officeCode}` が定義されている。
+- [x] タスク2.3: JSON / YAML 公開形を揃える
+  - 目的:
+    - 公開用の仕様形式を揃える。
+  - 対象ファイル:
+    - `openapi/openapi.yaml`
+    - `openapi/openapi.json`
+  - 完了条件:
+    - YAML と JSON の内容が一致している。
+- 目的:
+  - spec-first の正本となる OpenAPI 契約を作成する。
+- 入力:
+  - 本設計書の API エンドポイント案
+  - JMA `area.json` と `forecast/{officeCode}.json`
+- 出力:
+  - `openapi/openapi.yaml`
+  - `openapi/openapi.json`
+- 完了条件:
+  - `healthz`、`areas`、`forecasts` の契約が OpenAPI に定義されている。
+  - `oapi-codegen` に渡せる構文で記述されている。
+- リスク:
+  - upstream の構造理解が浅いと、後続の mapper 実装で契約変更が必要になる。
+
+### [x] フェーズ3: 生成コードと土台の整備
+
+- [x] タスク3.1: `oapi-codegen` の生成設定を用意する
+  - 目的:
+    - `types`、`server`、`spec` の生成ルールを実装可能にする。
+  - 対象ファイル:
+    - `openapi/openapi.yaml`
+    - 生成設定ファイル群
+  - 完了条件:
+    - `internal/gen` 配下に期待どおりの生成物を出せる。
+- [x] タスク3.2: アプリケーション骨格を作成する
+  - 目的:
+    - 生成コードと手書きコードの責務境界を作る。
+  - 対象ファイル:
+    - `cmd/server/main.go`
+    - `internal/handlers/`
+    - `internal/usecases/`
+    - `internal/clients/`
+    - `internal/mappers/`
+    - `internal/shared/`
+  - 完了条件:
+    - API サーバーが起動可能な骨格になっている。
+- 目的:
+  - `oapi-codegen` による生成物とアプリケーション骨格を作る。
+- 入力:
+  - `openapi/openapi.yaml`
+  - ADR 群
+- 出力:
+  - `internal/gen/types.gen.go`
+  - `internal/gen/server.gen.go`
+  - `internal/gen/spec.gen.go`
+  - `cmd/server/main.go`
+  - `internal/handlers/`
+  - `internal/usecases/`
+  - `internal/clients/`
+  - `internal/mappers/`
+  - `internal/shared/`
+- 完了条件:
+  - 生成コードと手書きコードの責務境界が作成されている。
+  - API サーバーが起動可能な骨格になっている。
+- リスク:
+  - 生成物の配置や import 設計が不安定だと、以降の実装コストが増える。
+
+### [x] フェーズ4: デプロイとローカル実行基盤の整備
+
+- [x] タスク4.1: Dockerfile を作成する
+  - 目的:
+    - Cloud Run 用のコンテナビルドを成立させる。
+  - 対象ファイル:
+    - `Dockerfile`
+  - 完了条件:
+    - アプリケーションをビルド・起動できる。
+- [x] タスク4.2: Cloud Run 定義を作成する
+  - 目的:
+    - 初期デプロイ設定を文書化する。
+  - 対象ファイル:
+    - `deploy/cloudrun/service.yaml`
+  - 完了条件:
+    - 最小インスタンス数 `0` を含む初期条件が記載されている。
+- 目的:
+  - Dockerfile と Cloud Run 向けの実行基盤を整える。
+- 入力:
+  - ADR 群
+  - アプリケーション骨格
+- 出力:
+  - `Dockerfile`
+  - `deploy/cloudrun/service.yaml`
+- 完了条件:
+  - Dockerfile でアプリケーションがビルドできる。
+  - Cloud Run 用設定で最低限の起動条件が整理されている。
+- リスク:
+  - Docker イメージ戦略が曖昧だと、デプロイ時に再設計が必要になる。
+
+### [x] フェーズ5: upstream 取り込みと mapper 実装
+
+- [x] タスク5.1: JMA クライアントを実装する
+  - 目的:
+    - upstream 取得処理を 1 箇所へ閉じ込める。
+  - 対象ファイル:
+    - `internal/clients/jma_client.go`
+  - 完了条件:
+    - `area.json` と `forecast/{officeCode}.json` を取得できる。
+- [x] タスク5.2: area mapper を実装する
+  - 目的:
+    - `offices` 体系を API 契約へ変換する。
+  - 対象ファイル:
+    - `internal/mappers/area_mapper.go`
+    - fixture 一式
+  - 完了条件:
+    - `areas` 契約を満たす DTO を返せる。
+- [x] タスク5.3: forecast mapper を実装する
+  - 目的:
+    - `weatherAreas` と `temperatureAreas` を API 契約へ変換する。
+  - 対象ファイル:
+    - `internal/mappers/forecast_mapper.go`
+    - fixture 一式
+  - 完了条件:
+    - `forecasts` 契約を満たす DTO を返せる。
+- 目的:
+  - JMA JSON を取り込み、API 契約に沿った DTO へ変換する。
+- 入力:
+  - `area.json`
+  - `forecast/130000.json`
+  - OpenAPI 契約
+- 出力:
+  - `internal/clients/jma_client.go`
+  - `internal/mappers/area_mapper.go`
+  - `internal/mappers/forecast_mapper.go`
+  - fixture 一式
+- 完了条件:
+  - `areas` と `forecasts` の mapper が初期契約を満たす。
+  - fixture ベースで変換結果を確認できる。
+- リスク:
+  - upstream の想定外差分により、初版契約の再調整が必要になる。
+
+### [ ] フェーズ6: 品質確認と公開導線の整備
+
+- [x] タスク6.1: テストを整備する
+  - 目的:
+    - 初期 API の品質を確認できる状態にする。
+  - 対象ファイル:
+    - `tests/`
+    - 関連実装ファイル
+  - 完了条件:
+    - `go test ./...` が実行可能である。
+- [x] タスク6.2: lint を整備する
+  - 目的:
+    - 静的検査の基盤を整える。
+  - 対象ファイル:
+    - lint 設定ファイル群
+  - 完了条件:
+    - `golangci-lint run` の通過条件が定義されている。
+- [x] タスク6.3: OpenAPI UI を公開する
+  - 目的:
+    - `/docs` から API 仕様を参照できるようにする。
+  - 対象ファイル:
+    - UI 組み込み関連ファイル
+  - 完了条件:
+    - OpenAPI UI から仕様を参照できる。
+- 目的:
+  - テスト、lint、OpenAPI UI を含めて公開可能な状態へ整える。
+- 入力:
+  - 実装済み API
+  - OpenAPI 契約
+- 出力:
+  - `go test` 実行結果
+  - `golangci-lint` 実行結果
+  - `/docs` 導線を含む API 起動状態
+- 完了条件:
+  - `go test ./...` と `golangci-lint run` の通過条件が定義されている。
+  - OpenAPI UI から仕様を参照できる。
+- リスク:
+  - UI 組み込み方式によっては静的アセット配信の追加調整が必要になる。
+
 ## 残課題
 
-- Cloud Run の CPU / memory / concurrency の初期値を決める。
-- Dockerfile のベースイメージとマルチステージ構成の詳細を決める。
+- `go test ./...`、`golangci-lint run`、Docker ビルド、`/docs` の実行確認を行う。
+- Cloud Run の CPU / memory / concurrency の初期値を運用条件に合わせて最終決定する。
 
 ## 次アクション
 
-1. `docs/adr/adr-001-language-and-router-selection.md` を作成し、Go と `chi` 採用理由を ADR 化する。
-2. `docs/adr/adr-002-openapi-generation-strategy.md` を作成し、spec-first、`oapi-codegen` 採用、`JSON/YAML` 併記、UI 同梱、生成配置ルールを固定する。
-3. `docs/adr/adr-003-deployment-and-logging.md` を作成し、Cloud Run と `log/slog` 採用理由を ADR 化する。
-4. `openapi/openapi.yaml` の初期雛形を作成する。
-5. `Dockerfile` と `deploy/cloudrun/service.yaml` の初期雛形を作成する。
-6. `cmd/` と `internal/` の初期 scaffold を作成する。
-7. `area.json` と `forecast/130000.json` を fixture 化し、areas / forecast mapper のプロトタイプを実装する。
+1. `go` と `golangci-lint` が利用できる環境で `go test ./...` と `golangci-lint run` を実行する。
+2. `oapi-codegen` を実行し、`internal/gen` を生成物で置き換えて差分を確認する。
+3. Docker ビルドと Cloud Run への起動確認を行う。
 
 ## 根拠
 

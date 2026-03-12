@@ -1,0 +1,4 @@
+package: gen
+generate:
+  chi-server: true
+output: ../internal/gen/server.gen.go
