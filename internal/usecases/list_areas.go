@@ -27,6 +27,12 @@ func NewAreaUsecase(client clients.JMAClient, mapper mappers.AreaMapper) AreaUse
 }
 
 func (u AreaUsecase) List(ctx context.Context, filter mappers.AreaFilter) (gen.AreasResponse, error) {
+	switch filter.NameMode {
+	case "", gen.AreaMatchMode("exact"), gen.AreaMatchMode("prefix"), gen.AreaMatchMode("partial"), gen.AreaMatchMode("suggested"):
+	default:
+		return gen.AreasResponse{}, shared.NewAppError(http.StatusBadRequest, "INVALID_MATCH_MODE", "name match mode was invalid", map[string]any{"nameMatchMode": filter.NameMode}, nil)
+	}
+
 	document, err := u.client.FetchAreaDocument(ctx)
 	if err != nil {
 		return gen.AreasResponse{}, err

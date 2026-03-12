@@ -263,20 +263,20 @@
 
 ### 6.1 状態ボード
 
-| タスク | 状態 | 担当 | 最終更新 | 次アクション | ブロッカー |
-| --- | --- | --- | --- | --- | --- |
-| タスク1.1 `areas` 検索条件を OpenAPI に追加する | DONE | operational-command | 2026-03-12 14:30 JST | 完了 | なし |
-| タスク1.2 `weatherAreas` 個別取得 API の契約を追加する | DONE | operational-command | 2026-03-12 14:30 JST | 完了 | なし |
-| タスク1.3 生成コードを再生成する | DONE | operational-command | 2026-03-12 14:30 JST | 完了 | なし |
-| タスク2.1 `areas` 検索条件の受け口を handler / usecase に追加する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
-| タスク2.2 `AreaMapper` に複合フィルタ処理を実装する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
-| タスク2.3 `areas` 検索のテストを追加する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
-| タスク3.0 weather 個別取得用の upstream 取得方針を client に反映する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
-| タスク3.1 forecast 個別取得用の usecase / handler を追加する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
-| タスク3.2 `ForecastMapper` に個別 area 抽出処理を追加する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
-| タスク3.3 forecast 個別取得のテストを追加する | DONE | worker | 2026-03-12 14:30 JST | 完了 | なし |
-| タスク4.1 全体テストと生成物整合を確認する | DONE | reviewer | 2026-03-12 14:30 JST | 完了 | なし |
-| タスク4.2 追加 API の利用導線を文書化する | DONE | operational-command | 2026-03-12 14:30 JST | 完了 | なし |
+| タスク                                                               | 状態 | 担当                | 最終更新             | 次アクション | ブロッカー |
+| -------------------------------------------------------------------- | ---- | ------------------- | -------------------- | ------------ | ---------- |
+| タスク1.1 `areas` 検索条件を OpenAPI に追加する                      | DONE | operational-command | 2026-03-12 14:30 JST | 完了         | なし       |
+| タスク1.2 `weatherAreas` 個別取得 API の契約を追加する               | DONE | operational-command | 2026-03-12 14:30 JST | 完了         | なし       |
+| タスク1.3 生成コードを再生成する                                     | DONE | operational-command | 2026-03-12 14:30 JST | 完了         | なし       |
+| タスク2.1 `areas` 検索条件の受け口を handler / usecase に追加する    | DONE | worker              | 2026-03-12 14:30 JST | 完了         | なし       |
+| タスク2.2 `AreaMapper` に複合フィルタ処理を実装する                  | DONE | worker              | 2026-03-12 14:30 JST | 完了         | なし       |
+| タスク2.3 `areas` 検索のテストを追加する                             | DONE | worker              | 2026-03-12 14:30 JST | 完了         | なし       |
+| タスク3.0 weather 個別取得用の upstream 取得方針を client に反映する | DONE | worker              | 2026-03-12 14:30 JST | 完了         | なし       |
+| タスク3.1 forecast 個別取得用の usecase / handler を追加する         | DONE | worker              | 2026-03-12 14:30 JST | 完了         | なし       |
+| タスク3.2 `ForecastMapper` に個別 area 抽出処理を追加する            | DONE | worker              | 2026-03-12 14:30 JST | 完了         | なし       |
+| タスク3.3 forecast 個別取得のテストを追加する                        | DONE | worker              | 2026-03-12 14:30 JST | 完了         | なし       |
+| タスク4.1 全体テストと生成物整合を確認する                           | DONE | reviewer            | 2026-03-12 14:30 JST | 完了         | なし       |
+| タスク4.2 追加 API の利用導線を文書化する                            | DONE | operational-command | 2026-03-12 14:30 JST | 完了         | なし       |
 
 ### 6.2 判断結果
 
@@ -290,6 +290,10 @@
   - `GET /v1/forecasts/{officeCode}/areas/{areaCode}` を追加し、`WEATHER_AREA_NOT_FOUND` を 404 として採用した。
   - weather 個別取得は `timeSeries[0]` 必須・`timeSeries[2]` 任意の専用取得経路を client に追加した。
   - `go test ./...` と `golangci-lint run` の成功を確認した。
+- 2026-03-12 15:05 JST:
+  - `GET /v1/forecasts/{officeCode}/areas/{areaCode}` は `weatherAreas.code` に加えて `temperatureAreas.code` でも検索可能に拡張した。
+  - 個別レスポンスは `weatherArea` または `temperatureArea` の一方を返す契約へ更新した。
+  - 404 エラーコードは `FORECAST_AREA_NOT_FOUND` に一般化した。
 - 不要理由（不要な場合のみ）:
   - E2E は既存環境がないため必須外。ただし handler レベルの HTTP テストで代替する。
 
@@ -299,7 +303,7 @@
 | ------------------------------------------------------------------------------ | ----------- | ------------- | ------ | --------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------ |
 | `GET /v1/areas` の複合検索仕様が曖昧で実装解釈が割れる                         | 3           | 2             | 6      | `200 + items: []`、AND 条件、完全一致を計画と OpenAPI に明記する                              | query 条件ごとの unit / HTTP テスト                       | タスク1.1, 2.3           |
 | weather 個別取得が既存 client の `timeSeries[2]` 前提に引きずられて 502 化する | 3           | 2             | 6      | weather 個別取得専用の upstream 取得経路を用意し、最小要件を `timeSeries[0]` 必須へ切り分ける | client / usecase test で `timeSeries[2]` 欠落時の挙動確認 | タスク3.0, 3.3           |
-| `weatherAreas` 個別取得で temperature を誤って関連付ける                       | 3           | 2             | 6      | 個別レスポンスから temperature を除外し、専用 schema を定義する                               | mapper test で temperature 非包含を確認                   | タスク1.2, 3.2, 3.3      |
+| `weatherAreas` / `temperatureAreas` 個別取得で対象種別を誤って関連付ける       | 3           | 2             | 6      | 個別レスポンスを `weatherArea` または `temperatureArea` の片側返却に限定する                  | mapper test で返却種別を確認                              | タスク1.2, 3.2, 3.3      |
 | 生成コード更新漏れで handler interface が不整合になる                          | 2           | 2             | 4      | OpenAPI 更新直後に `oapi-codegen` 再生成を固定手順にする                                      | `go test ./...` とビルド確認                              | タスク1.3, 4.1           |
 | `openapi/openapi.yaml` と `openapi/openapi.json` が乖離する                    | 2           | 2             | 4      | 対象ファイルと手順に JSON 同期を含める                                                        | `/openapi.yaml` と `/openapi.json` の内容確認             | タスク1.1, 1.2, 1.3, 4.1 |
 | query parameter 増加で `AreaUsecase.List` が保守しづらくなる                   | 2           | 2             | 4      | filter struct を導入して引数を整理する                                                        | usecase / handler テストで配線確認                        | タスク2.1                |
@@ -337,7 +341,7 @@
   - OpenAPI と生成コードを同じコミット単位で戻す
 - 監視/アラート:
   - 新規監視は追加しない
-  - 既存ログで `AREA_NOT_FOUND` / `OFFICE_NOT_FOUND` / 新規 `WEATHER_AREA_NOT_FOUND` 系の頻度を確認対象とする
+  - 既存ログで `AREA_NOT_FOUND` / `OFFICE_NOT_FOUND` / 新規 `FORECAST_AREA_NOT_FOUND` 系の頻度を確認対象とする
 
 ## 9. 未確定事項
 

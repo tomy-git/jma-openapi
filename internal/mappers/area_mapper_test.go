@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/tomy-git/jma-openapi/internal/clients"
+	"github.com/tomy-git/jma-openapi/internal/gen"
 )
 
 func TestAreaMapper_ToAreasResponse(t *testing.T) {
@@ -46,10 +47,38 @@ func TestAreaMapper_ToAreasResponse(t *testing.T) {
 		{
 			name: "name",
 			filter: AreaFilter{
-				Name: stringPtr("東京都"),
+				Name:     stringPtr("東京都"),
+				NameMode: gen.Exact,
 			},
 			wantCount: 1,
 			wantFirst: "130000",
+		},
+		{
+			name: "name prefix",
+			filter: AreaFilter{
+				Name:     stringPtr("東京"),
+				NameMode: gen.Prefix,
+			},
+			wantCount: 1,
+			wantFirst: "130000",
+		},
+		{
+			name: "name partial",
+			filter: AreaFilter{
+				Name:     stringPtr("京都"),
+				NameMode: gen.Partial,
+			},
+			wantCount: 2,
+			wantFirst: "130000",
+		},
+		{
+			name: "name suggested",
+			filter: AreaFilter{
+				Name:     stringPtr("京"),
+				NameMode: gen.Suggested,
+			},
+			wantCount: 2,
+			wantFirst: "260000",
 		},
 		{
 			name: "officeName",

@@ -77,7 +77,16 @@
               "type": "string"
             },
             "required": false,
-            "description": "offices.name での完全一致フィルタ。"
+            "description": "offices.name でのフィルタ。"
+          },
+          {
+            "in": "query",
+            "name": "nameMatchMode",
+            "schema": {
+              "$ref": "#/components/schemas/AreaMatchMode"
+            },
+            "required": false,
+            "description": "`name` に適用する検索モード。未指定時は `exact`。"
           },
           {
             "in": "query",
@@ -219,7 +228,7 @@
         ],
         "operationId": "getV1ForecastsOfficeCodeAreasAreaCode",
         "summary": "Get forecast for a weather area by office code",
-        "description": "指定した office code の forecast から対象 weather area のみを返す。レスポンスには temperature 系項目を含めない。",
+        "description": "指定した office code の forecast から、`weatherAreas.code` または `temperatureAreas.code` に一致する対象のみを返す。",
         "parameters": [
           {
             "in": "path",
@@ -250,7 +259,7 @@
             }
           },
           "404": {
-            "description": "officeCode が不正、または areaCode に一致する weatherArea が存在しない。",
+            "description": "officeCode が不正、または areaCode に一致する weatherArea / temperatureArea が存在しない。",
             "content": {
               "application/json": {
                 "schema": {
@@ -263,6 +272,369 @@
             "$ref": "#/components/responses/ErrorResponse"
           },
           "503": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
+          "default": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/v1/forecasts/{officeCode}/areas": {
+      "get": {
+        "tags": [
+          "forecasts"
+        ],
+        "operationId": "getV1ForecastsOfficeCodeAreas",
+        "summary": "List forecast areas by office code",
+        "description": "指定した office code の forecast に含まれる weather / temperature area の統合一覧を返す。",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "officeCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastAreaListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
+          "default": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/v1/forecasts/{officeCode}/weather-areas": {
+      "get": {
+        "tags": [
+          "forecasts"
+        ],
+        "operationId": "getV1ForecastsOfficeCodeWeatherAreas",
+        "summary": "List weather areas by office code",
+        "description": "指定した office code の weather area 一覧を返す。",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "officeCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeatherAreaListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
+          "default": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/v1/forecasts/{officeCode}/weather-areas/{areaCode}": {
+      "get": {
+        "tags": [
+          "forecasts"
+        ],
+        "operationId": "getV1ForecastsOfficeCodeWeatherAreasAreaCode",
+        "summary": "Get weather area forecast by office code",
+        "description": "指定した office code 配下の weather area ひとつ分の予報情報を返す。",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "officeCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "areaCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeatherAreaResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
+          "default": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/v1/forecasts/{officeCode}/temperature-areas": {
+      "get": {
+        "tags": [
+          "forecasts"
+        ],
+        "operationId": "getV1ForecastsOfficeCodeTemperatureAreas",
+        "summary": "List temperature areas by office code",
+        "description": "指定した office code の temperature area 一覧を返す。",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "officeCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemperatureAreaListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
+          "default": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/v1/forecasts/{officeCode}/temperature-areas/{areaCode}": {
+      "get": {
+        "tags": [
+          "forecasts"
+        ],
+        "operationId": "getV1ForecastsOfficeCodeTemperatureAreasAreaCode",
+        "summary": "Get temperature area forecast by office code",
+        "description": "指定した office code 配下の temperature area ひとつ分の予報情報を返す。",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "officeCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "areaCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemperatureAreaResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
+          "default": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/v1/forecasts/{officeCode}/areas:resolve": {
+      "get": {
+        "tags": [
+          "forecasts"
+        ],
+        "operationId": "getV1ForecastsOfficeCodeAreasResolve",
+        "summary": "Resolve forecast area codes by name",
+        "description": "指定した office code 配下の area 名から候補 code 一覧を返す。",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "officeCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ForecastAreaKind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "matchMode",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/AreaMatchMode"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastAreaListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
+          "default": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/v1/forecasts/{officeCode}/areas/{areaCode}/latest": {
+      "get": {
+        "tags": [
+          "forecasts"
+        ],
+        "operationId": "getV1ForecastsOfficeCodeAreasAreaCodeLatest",
+        "summary": "Get latest forecast area entry by area code",
+        "description": "指定した area code の時系列先頭要素のみを返す。",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "officeCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "areaCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastAreaResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ErrorResponse"
+          },
+          "default": {
+            "$ref": "#/components/responses/ErrorResponse"
+          }
+        }
+      }
+    },
+    "/v1/forecasts/{officeCode}/areas/{areaCode}/timeseries": {
+      "get": {
+        "tags": [
+          "forecasts"
+        ],
+        "operationId": "getV1ForecastsOfficeCodeAreasAreaCodeTimeseries",
+        "summary": "Get forecast area timeseries by area code",
+        "description": "指定した area code の時系列全体を返す。",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "officeCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "areaCode",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastAreaResponse"
+                }
+              }
+            }
+          },
+          "404": {
             "$ref": "#/components/responses/ErrorResponse"
           },
           "default": {
@@ -326,6 +698,15 @@
             }
           }
         }
+      },
+      "AreaMatchMode": {
+        "type": "string",
+        "enum": [
+          "exact",
+          "prefix",
+          "partial",
+          "suggested"
+        ]
       },
       "Area": {
         "type": "object",
@@ -400,10 +781,9 @@
         "required": [
           "office",
           "publishingOffice",
-          "reportDatetime",
-          "weatherArea"
+          "reportDatetime"
         ],
-        "description": "weatherArea 単位の個別予報レスポンス。temperature 系項目は含まない。",
+        "description": "area code 個別予報レスポンス。`weatherArea` または `temperatureArea` のいずれか一方を返す。",
         "properties": {
           "office": {
             "$ref": "#/components/schemas/OfficeRef"
@@ -417,6 +797,126 @@
           },
           "weatherArea": {
             "$ref": "#/components/schemas/WeatherArea"
+          },
+          "temperatureArea": {
+            "$ref": "#/components/schemas/TemperatureArea"
+          }
+        }
+      },
+      "ForecastAreaKind": {
+        "type": "string",
+        "enum": [
+          "weather",
+          "temperature",
+          "any"
+        ]
+      },
+      "ForecastAreaRef": {
+        "type": "object",
+        "required": [
+          "kind",
+          "code",
+          "name"
+        ],
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/ForecastAreaKind"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "ForecastAreaListResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastAreaRef"
+            }
+          }
+        }
+      },
+      "WeatherAreaListResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastAreaRef"
+            }
+          }
+        }
+      },
+      "TemperatureAreaListResponse": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ForecastAreaRef"
+            }
+          }
+        }
+      },
+      "WeatherAreaResponse": {
+        "type": "object",
+        "required": [
+          "office",
+          "publishingOffice",
+          "reportDatetime",
+          "weatherArea"
+        ],
+        "properties": {
+          "office": {
+            "$ref": "#/components/schemas/OfficeRef"
+          },
+          "publishingOffice": {
+            "type": "string"
+          },
+          "reportDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "weatherArea": {
+            "$ref": "#/components/schemas/WeatherArea"
+          }
+        }
+      },
+      "TemperatureAreaResponse": {
+        "type": "object",
+        "required": [
+          "office",
+          "publishingOffice",
+          "reportDatetime",
+          "temperatureArea"
+        ],
+        "properties": {
+          "office": {
+            "$ref": "#/components/schemas/OfficeRef"
+          },
+          "publishingOffice": {
+            "type": "string"
+          },
+          "reportDatetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "temperatureArea": {
+            "$ref": "#/components/schemas/TemperatureArea"
           }
         }
       },

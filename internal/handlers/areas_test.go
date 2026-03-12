@@ -50,6 +50,49 @@ func TestGetV1Areas_QueryFilters(t *testing.T) {
 	}
 }
 
+func TestGetV1Areas_NameMatchMode(t *testing.T) {
+	t.Parallel()
+
+	server := newTestServer(t)
+	router := chi.NewRouter()
+	gen.HandlerFromMux(server, router)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/areas?name=%E6%9D%B1%E4%BA%AC&nameMatchMode=prefix", nil)
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", rec.Code)
+	}
+
+	var response gen.AreasResponse
+	if err := json.NewDecoder(rec.Body).Decode(&response); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(response.Items) != 1 || response.Items[0].Code != "130000" {
+		t.Fatalf("expected prefixed Tokyo result, got %+v", response.Items)
+	}
+}
+
+func TestGetV1Areas_InvalidMatchMode(t *testing.T) {
+	t.Parallel()
+
+	server := newTestServer(t)
+	router := chi.NewRouter()
+	gen.HandlerFromMux(server, router)
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/areas?name=%E6%9D%B1%E4%BA%AC&nameMatchMode=unknown", nil)
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", rec.Code)
+	}
+}
+
 func TestGetV1Areas_EmptyItemsForNoMatch(t *testing.T) {
 	t.Parallel()
 

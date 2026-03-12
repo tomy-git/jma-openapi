@@ -15,6 +15,7 @@ func (s *Server) GetV1Areas(w http.ResponseWriter, r *http.Request, params gen.G
 	response, err := s.areaUsecase.List(r.Context(), mappers.AreaFilter{
 		Parent:     params.Parent,
 		Name:       params.Name,
+		NameMode:   derefAreaMatchMode(params.NameMatchMode),
 		OfficeName: params.OfficeName,
 		Child:      params.Child,
 	})
@@ -24,6 +25,14 @@ func (s *Server) GetV1Areas(w http.ResponseWriter, r *http.Request, params gen.G
 	}
 
 	writeJSON(w, http.StatusOK, response)
+}
+
+func derefAreaMatchMode(mode *gen.AreaMatchMode) gen.AreaMatchMode {
+	if mode == nil {
+		return gen.AreaMatchMode("exact")
+	}
+
+	return *mode
 }
 
 func (s *Server) GetV1AreasAreaCode(w http.ResponseWriter, r *http.Request, areaCode string) {
